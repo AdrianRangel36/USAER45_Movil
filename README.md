@@ -61,15 +61,6 @@ Y si algo se comporta raro después de cambiar dependencias o variables de entor
 npx expo start --clear
 ```
 
-## Usuarios de prueba
-
-Contraseña para los tres: `Usaer45J!2026`
-
-| Correo | Perfil | En la app móvil |
-|---|---|---|
-| `docente@usaer45j.edu.mx` | Docente | Acceso completo de captura |
-| `admin@usaer45j.edu.mx` | Administrador | Acceso completo de captura (ve a todos los alumnos) |
-| `directivo@usaer45j.edu.mx` | Directivo | **No entra**: su perfil es de consulta, en la web |
 
 ## Configuración
 
