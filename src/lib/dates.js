@@ -23,3 +23,16 @@ export function formatDateWithWeekday(value) {
   if (Number.isNaN(date.getTime())) return '—'
   return `${WEEKDAYS[date.getDay()]} ${formatDateLong(date)}`
 }
+
+/**
+ * Periodo de captura en formato "AAAA-M" (p. ej. "2026-7" para julio de 2026).
+ *
+ * Es la convención que ya usan los registros existentes en la base, no un
+ * semestre: se comprobó consultando GET /grades/student/:id en producción.
+ * Sirve para prellenar el campo; el docente puede cambiarlo.
+ */
+export function periodFromDate(value) {
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return `${date.getFullYear()}-${date.getMonth() + 1}`
+}

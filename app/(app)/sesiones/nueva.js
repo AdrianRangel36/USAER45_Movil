@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Alert, Platform, Pressable, StyleSheet, Text } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text } from 'react-native'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { useRouter } from 'expo-router'
 import { Button } from '../../../src/components/ui/Button'
@@ -80,17 +80,17 @@ export default function NewSessionScreen() {
     setSaving(true)
     setSaveError(null)
     try {
-      await createSession({
+      const session = await createSession({
         techniqueId,
         subject,
         sessionDate: date.toISOString(),
         notes: notes.trim() || undefined,
       })
-      // TODO(módulo 3): al existir /sesiones/[id]/calificaciones, encadenar
-      // directo a la captura de calificaciones, como hace la web.
-      Alert.alert('Sesión registrada', 'La sesión quedó guardada en el sistema.', [
-        { text: 'Entendido', onPress: () => router.back() },
-      ])
+      // Se encadena directo a capturar calificaciones (como hace la web): es
+      // lo que el docente va a hacer enseguida al terminar la clase. Con
+      // `replace`, el botón de atrás regresa a la lista y no al formulario ya
+      // enviado.
+      router.replace(`/sesiones/${session.id}/calificaciones`)
     } catch (err) {
       // El formulario conserva lo capturado: solo se muestra el error.
       setSaveError(getApiErrorMessage(err))

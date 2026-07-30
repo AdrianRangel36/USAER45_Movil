@@ -118,19 +118,21 @@ src/
   Expo Web, que no es el objetivo de este cliente.
 - **`teacherId` nunca se envía** al crear una sesión: el backend lo toma del JWT.
 
-## Estado actual
-
-Listo:
+## Estado actual: funcionalidad completa
 
 - Proyecto configurado (Expo SDK 54, React Native 0.81.5, expo-router 6, variables de entorno).
 - Capa de API con JWT, manejo de 401 y mensajes de error en español.
 - Sesión persistente y cifrada, con restricción por perfil.
-- Login, Inicio (con datos reales del backend), Cuenta y navegación por pestañas.
+- **Login · Inicio · Cuenta** y navegación por pestañas.
+- **Sesiones**: lista y alta, con selector de técnica, materia y fecha.
+- **Calificaciones**: captura por lote de una sesión, con validación 0–10.
+- **Rúbrica de conducta**: los 4 criterios en escala 1–4, alumno por alumno.
+- **Pictogramas**: buscador de ARASAAC con tono de piel y voz al tocar.
+- **Tablero de comunicación**: pantalla completa, categorías, constructor de frases, voz en
+  español y modo de alto contraste.
 
-Pendiente (Etapa 2), con las rutas ya creadas como marcadores:
-
-- Lista y alta de sesiones · Captura de calificaciones · Rúbrica de conducta ·
-  Buscador de pictogramas · Tablero de comunicación con voz.
+> Para probar la captura entra con **`admin@usaer45j.edu.mx`**: la cuenta `docente@` no tiene
+> alumnos asignados y las pantallas se verían vacías. Ver `CONTEXTO_APP_MOVIL.md`.
 
 ## Documentos del proyecto
 

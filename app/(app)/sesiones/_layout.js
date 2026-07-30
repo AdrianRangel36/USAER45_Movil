@@ -14,6 +14,8 @@ export default function SessionsLayout() {
     >
       <Stack.Screen name="index" options={{ title: 'Sesiones' }} />
       <Stack.Screen name="nueva" options={{ title: 'Nueva sesión' }} />
+      <Stack.Screen name="[id]/calificaciones" options={{ title: 'Calificaciones' }} />
+      <Stack.Screen name="[id]/rubrica" options={{ title: 'Rúbrica de conducta' }} />
     </Stack>
   )
 }

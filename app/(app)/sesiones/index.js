@@ -94,7 +94,7 @@ export default function SessionsScreen() {
             description="Registra la primera con el botón de arriba: es el punto de partida para capturar calificaciones y rúbricas."
           />
         }
-        renderItem={({ item }) => <SessionCard session={item} />}
+        renderItem={({ item }) => <SessionCard session={item} router={router} />}
       />
     </Screen>
   )
@@ -102,38 +102,55 @@ export default function SessionsScreen() {
 
 /**
  * Tarjeta de una sesión: fecha, materia y técnica con el color de su
- * categoría. Todavía no navega a ningún lado: la captura de calificaciones y
- * la rúbrica (módulos 3 y 4) se colgarán de aquí cuando existan sus rutas.
+ * categoría, más las dos acciones que el docente hace sobre una sesión:
+ * capturar calificaciones y llenar la rúbrica de conducta.
  */
-function SessionCard({ session }) {
+function SessionCard({ session, router }) {
   const category = session.technique?.category
   const accent = TECHNIQUE_CATEGORY_COLORS[category] ?? colors.otra
 
   return (
     <Card style={styles.session}>
-      <View style={[styles.accent, { backgroundColor: accent }]} />
-      <View style={styles.sessionBody}>
-        <Text style={styles.sessionDate}>{formatDateLong(session.sessionDate)}</Text>
-        <Text style={styles.sessionSubject}>
-          {SUBJECT_LABELS[session.subject] ?? session.subject}
-        </Text>
-        <View style={styles.techniqueRow}>
-          <Text style={styles.techniqueName} numberOfLines={1}>
-            {session.technique?.name ?? 'Técnica sin nombre'}
+      <View style={styles.sessionTop}>
+        <View style={[styles.accent, { backgroundColor: accent }]} />
+        <View style={styles.sessionBody}>
+          <Text style={styles.sessionDate}>{formatDateLong(session.sessionDate)}</Text>
+          <Text style={styles.sessionSubject}>
+            {SUBJECT_LABELS[session.subject] ?? session.subject}
           </Text>
-          {category ? (
-            <View style={[styles.categoryBadge, { backgroundColor: accent }]}>
-              <Text style={styles.categoryBadgeText}>
-                {TECHNIQUE_CATEGORY_LABELS[category] ?? category}
-              </Text>
-            </View>
+          <View style={styles.techniqueRow}>
+            <Text style={styles.techniqueName} numberOfLines={1}>
+              {session.technique?.name ?? 'Técnica sin nombre'}
+            </Text>
+            {category ? (
+              <View style={[styles.categoryBadge, { backgroundColor: accent }]}>
+                <Text style={styles.categoryBadgeText}>
+                  {TECHNIQUE_CATEGORY_LABELS[category] ?? category}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          {session.notes ? (
+            <Text style={styles.notes} numberOfLines={2}>
+              {session.notes}
+            </Text>
           ) : null}
         </View>
-        {session.notes ? (
-          <Text style={styles.notes} numberOfLines={2}>
-            {session.notes}
-          </Text>
-        ) : null}
+      </View>
+
+      <View style={styles.sessionActions}>
+        <Button
+          title="Calificaciones"
+          variant="outline"
+          style={styles.sessionAction}
+          onPress={() => router.push(`/sesiones/${session.id}/calificaciones`)}
+        />
+        <Button
+          title="Rúbrica"
+          variant="outline"
+          style={styles.sessionAction}
+          onPress={() => router.push(`/sesiones/${session.id}/rubrica`)}
+        />
       </View>
     </Card>
   )
@@ -153,8 +170,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   session: {
+    gap: spacing.lg,
+  },
+  sessionTop: {
     flexDirection: 'row',
     gap: spacing.lg,
+  },
+  sessionActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  sessionAction: {
+    flex: 1,
   },
   accent: {
     width: 6,

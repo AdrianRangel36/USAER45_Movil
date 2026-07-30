@@ -1,5 +1,11 @@
 # Prompt para continuar el desarrollo
 
+> **Nota:** los seis módulos del alcance móvil ya están terminados. Este prompt sigue siendo
+> útil para cualquier trabajo nuevo sobre la app (ajustes, correcciones o pantallas
+> adicionales): basta cambiar la línea marcada con `👉`. Las opciones numeradas de más abajo
+> corresponden a módulos ya implementados y se conservan solo como referencia de cómo redactar
+> una tarea.
+
 Copia el bloque de abajo y pégalo como primer mensaje en Claude Code (u otro asistente),
 teniendo abierta la carpeta `USAER45_Movil`.
 

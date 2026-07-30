@@ -77,10 +77,18 @@ Contraseña de los tres: `Usaer45J!2026`
 | `admin@usaer45j.edu.mx` | ADMIN | Acceso completo de captura (ve a todos los alumnos) |
 | `directivo@usaer45j.edu.mx` | DIRECTIVO | **Bloqueado**: la app se lo dice y lo manda a la web |
 
-> **Dato real, no es un bug:** la base de datos de producción tiene **0 alumnos** registrados
-> (solo las 4 técnicas de enseñanza sembradas). Por eso el Inicio muestra `0 alumnos
-> asignados`. Los alumnos se dan de alta desde la **web** con perfil ADMIN. Si necesitas datos
-> para probar la captura, créalos primero ahí.
+> ### ⚠️ Para probar la captura, entra con `admin@`
+>
+> La base de producción tiene **12 alumnos reales** cargados, pero están asignados a las
+> cuentas de los **docentes reales** (*áfrica elizabeth nuñez nevarez* y *ociel rodriguez*).
+> La cuenta de prueba `docente@usaer45j.edu.mx` tiene **0 alumnos asignados**, así que con ella
+> las pantallas de calificaciones y rúbrica se ven vacías. **No es un bug de la app.**
+>
+> Usa **`admin@usaer45j.edu.mx`**, que ve a los 12, o pide que te asignen alumnos desde la web.
+>
+> **Cuidado:** son datos reales de menores (nombres, diagnósticos NEE, tutores) y lo que
+> captures se guarda en el conjunto de datos real de la investigación. Si haces pruebas con
+> valores inventados, bórralos después desde la web.
 
 ---
 
@@ -167,6 +175,10 @@ peticiones a mano.**
   suelto. Es captura por lote, en una sola transacción.
 - **`score`** se **envía** como `number` (0–10) pero **regresa como `string`** (es un
   `Decimal(4,2)` de Prisma). Conviértelo antes de hacer cuentas.
+- **`period` usa formato año-mes**: `"2026-7"` para julio de 2026. Se comprobó consultando los
+  registros existentes en producción — **no** es el `"2026-1"` semestral que sugiere la
+  documentación del proyecto. `periodFromDate()` en `src/lib/dates.js` lo arma a partir de la
+  fecha de la sesión.
 - **`POST /sessions`** — **nunca envíes `teacherId`**: el backend lo toma del JWT.
 - **`POST /rubrics/:rubricId/records`** — `rubricId` va **en la URL**, no en el body.
 - **`GET /students` y `GET /sessions`** — el backend **ya filtra** por el docente del token.
@@ -209,74 +221,73 @@ NeeType           DEFICIT_ATENCION | DIFICULTAD_APRENDIZAJE |
 
 ### Rúbrica de conducta
 
-Escala **Likert de 4 puntos, par a propósito** (sin opción neutra, para evitar el sesgo de
-tendencia central que se detectó en el trabajo de campo):
+Hay **una sola rúbrica activa** (`Evaluación Conductual Estándar USAER`), así que la app la
+selecciona sola y no muestra un selector de rúbrica.
 
-`1 Nunca · 2 Rara vez · 3 Frecuentemente · 4 Siempre`
+Escala **Likert de 4 puntos, par a propósito** (sin opción neutra, para evitar el sesgo de
+tendencia central que se detectó en el trabajo de campo). Las etiquetas **reales de la base**
+son:
+
+`1 Nunca · 2 Rara vez · 3 Casi siempre · 4 Siempre`
+
+> Ojo: la documentación del estudio (Actividad 3.2) dice "Frecuentemente" en el nivel 3, pero
+> la rúbrica sembrada usa **"Casi siempre"**. La app pinta siempre las etiquetas que vienen en
+> `escala.etiquetas` de la API, que es la fuente de verdad. `RUBRIC_SCALE_FALLBACK` en
+> `src/lib/labels.js` solo se usa si `escala` llegara como string.
 
 Criterios sembrados: **C1** Atención sostenida · **C2** Conducta disruptiva ·
 **C3** Participación activa · **C4** Seguimiento de instrucciones.
 
-> **C2 es de escala invertida** (más puntaje = más conducta disruptiva). En la app **solo se
-> muestra y se guarda tal cual**; la interpretación estadística la hace el analytics-service.
-> No inviertas el valor al guardar.
+> **C2 es de escala invertida** (más puntaje = más conducta disruptiva). El propio campo
+> `descripcion` del criterio lo advierte, y la app detecta esa palabra para mostrar una
+> etiqueta de aviso. **Se guarda tal cual, sin invertir**: la interpretación estadística la
+> hace el analytics-service.
 
 ---
 
-## 6. Estado actual
+## 6. Estado actual — **funcionalidad completa**
 
-### Ya terminado y probado en teléfono
+Todos los módulos del alcance móvil están implementados. No quedan pantallas "en
+construcción".
 
-- Proyecto Expo SDK 54 configurado (expo-router, variables de entorno, plugins).
-- Capa de API con JWT, cierre de sesión automático en 401, timeout de 15 s y mensajes de error
-  en español (incluido "No se pudo conectar con el servidor").
-- Sesión persistente y cifrada, con bloqueo del perfil DIRECTIVO.
-- **Login** funcionando contra la API de producción.
-- **Inicio** con datos reales (`GET /students`) y accesos a las cuatro tareas del aula.
-- **Cuenta** con datos del usuario y cerrar sesión (con confirmación).
-- Navegación por pestañas: Inicio · Sesiones · Pictogramas · Cuenta.
-- Sistema de componentes propio y tokens de tema.
+| Pantalla | Archivo | Endpoint |
+|---|---|---|
+| Login | `app/login.js` | `POST /auth/login` |
+| Inicio | `app/(app)/index.js` | `GET /students` |
+| Lista de sesiones | `app/(app)/sesiones/index.js` | `GET /sessions` |
+| Alta de sesión | `app/(app)/sesiones/nueva.js` | `GET /techniques` + `POST /sessions` |
+| Captura de calificaciones | `app/(app)/sesiones/[id]/calificaciones.js` | `POST /grades` |
+| Rúbrica de conducta | `app/(app)/sesiones/[id]/rubrica.js` | `GET /rubrics` + `POST /rubrics/:id/records` |
+| Buscador de pictogramas | `app/(app)/pictogramas.js` | `GET /arasaac/search` |
+| Tablero de comunicación | `app/tablero.js` | `GET /arasaac/search` + `expo-speech` |
+| Cuenta | `app/(app)/cuenta.js` | — |
 
-### Pendiente — las rutas ya existen con un marcador "En construcción"
+### Flujo del docente en el aula
 
-Están en su **ruta definitiva**, así que solo hay que sustituir el cuerpo de cada pantalla; la
-navegación no se toca.
+`Sesiones → Nueva sesión →` (al guardar encadena solo) `→ Calificaciones`.
+Desde la lista, cada sesión tiene botones de **Calificaciones** y **Rúbrica**.
+El **Tablero** vive fuera de las pestañas, a pantalla completa: es la única pantalla que ve el
+alumno, y no debe tener nada que invite a tocarlo por error.
 
-| # | Pantalla | Archivo | Endpoint |
-|---|---|---|---|
-| 1 | Lista de sesiones | `app/(app)/sesiones/index.js` | `GET /sessions` |
-| 2 | Alta de sesión | `app/(app)/sesiones/nueva.js` | `POST /sessions` |
-| 3 | Captura de calificaciones | *por crear:* `app/(app)/sesiones/[id]/calificaciones.js` | `POST /grades` |
-| 4 | Rúbrica de conducta | *por crear:* `app/(app)/sesiones/[id]/rubrica.js` | `GET /rubrics` + `POST /rubrics/:id/records` |
-| 5 | Buscador de pictogramas | `app/(app)/pictogramas.js` | `GET /arasaac/search` |
-| 6 | Tablero de comunicación | `app/tablero.js` | `GET /arasaac/search` + `expo-speech` |
+### Componentes reutilizables disponibles
 
-**Orden recomendado:** 1 y 2 primero (todo lo demás cuelga de tener una sesión), luego 3, 4,
-5 y 6.
+`Screen` · `Button` · `Field`/`Input` · `Card`/`ActionCard` · `Select` (modal) ·
+`ScaleSelector` (escala 1–4 en botones) · `SessionHeader` (encabezado de sesión de solo
+lectura) · `Feedback` (`ErrorMessage`/`LoadingState`/`EmptyState`) · `StartupScreen` ·
+`PictogramGrid` · `ArasaacCredit`.
 
-### Detalles de cada pantalla pendiente
+Utilidades: `src/lib/dates.js` (formato en español + `periodFromDate`), `src/lib/labels.js`
+(etiquetas de enums + `rubricCriterionLevels`), `src/lib/speech.js` (voz es-MX),
+`src/lib/board-config.js` (categorías y tonos de piel).
 
-**1–2. Sesiones.** La lista muestra fecha, materia y técnica (con color por categoría, ver
-`TECHNIQUE_CATEGORY_COLORS`), y desde cada sesión se entra a capturar calificaciones o
-rúbrica. El alta necesita un **selector** (técnica y materia) y un **selector de fecha**:
-`@react-native-community/datetimepicker` ya está instalado, con hoy por defecto. Al guardar,
-encadenar directo a calificaciones, como hace la web. Falta crear un componente `Select`
-propio (modal con opciones grandes) en `src/components/ui/`.
+### Qué queda fuera del alcance móvil (a propósito)
 
-**3. Calificaciones.** Lista de alumnos con teclado numérico por alumno
-(`keyboardType="decimal-pad"`), validación 0–10 en vivo, campo de periodo (formato `2026-1`).
-Enviar solo los alumnos con calificación capturada. Referencia:
-`USAER45_Web/src/pages/GradeCapturePage.tsx`.
-
-**4. Rúbrica.** En móvil, los 4 niveles van como **botones grandes en fila**, no como un
-desplegable: es más rápido y menos propenso a error con el dedo. Observaciones opcionales.
-
-**5–6. ARASAAC.** Las imágenes vienen de URLs públicas del CDN y se cargan con `<Image>`. El
-tablero va **a pantalla completa, fuera de las pestañas** (ya está así), con categorías,
-constructor de frases y voz con **`expo-speech`**:
-`Speech.speak(palabra, { language: 'es-MX', rate: 0.9 })`. Las categorías y opciones de tono
-de piel están en `USAER45_Web/src/components/arasaac/board-config.ts`.
-La web usa Web Speech API — **eso no existe en móvil**, por eso `expo-speech`.
+- **Entrevistas** (`POST /interviews`): se aplica una vez al cierre del periodo, no en el aula.
+  La web ya lo cubre.
+- **Alta de alumnos y gestión de usuarios**: son tareas de ADMIN desde la web.
+- **Analítica y reportes PDF**: perfil DIRECTIVO, en la web.
+- **Captura sin conexión**: se decidió "solo en línea" con buen manejo de errores. Si algún día
+  se quiere una cola offline, el punto único donde engancharla es `src/api/endpoints.js`.
 
 ---
 
@@ -288,9 +299,12 @@ npx expo export --platform ios --output-dir .tmp-check   # debe compilar sin err
 npx expo start                               # y probar en el teléfono
 ```
 
-Para cada módulo nuevo: **crear un registro real desde el teléfono** y confirmarlo en la web
-(`https://usaer-45-web.vercel.app`) con el mismo usuario. Si aparece en la web, el dato llegó
-bien a la base.
+Para cada módulo nuevo: **crear un registro desde el teléfono** (entrando con `admin@`) y
+confirmarlo en la web (`https://usaer-45-web.vercel.app`) con el mismo usuario. Si aparece en
+la web, el dato llegó bien a la base.
+
+Prueba obligatoria en cualquier pantalla de captura: **poner el teléfono en modo avión** e
+intentar guardar. Debe aparecer el mensaje de conexión **sin que se pierda lo capturado**.
 
 ---
 
@@ -318,7 +332,8 @@ mantener:
   rol, consentimiento del tutor obligatorio para dar de alta a un alumno.
 - **Anonimato:** en los instrumentos del estudio los alumnos se identifican como `ALUM-01` a
   `ALUM-10`. No agregues pantallas que expongan diagnósticos junto al nombre sin necesidad.
-- **ARASAAC (CC BY-NC-SA):** debe quedar visible la atribución
-  *"Pictogramas: ARASAAC — Gobierno de Aragón — Sergio Palao"* en las pantallas que muestren
-  pictogramas. **Falta agregarla** en las pantallas 5 y 6.
+- **ARASAAC (CC BY-NC-SA):** la atribución
+  *"Pictogramas: ARASAAC — Gobierno de Aragón — Sergio Palao"* ya está puesta en el buscador y
+  en el tablero, con el componente `ArasaacCredit`. **Si agregas otra pantalla con
+  pictogramas, inclúyelo también**: lo exige la licencia.
 - **LFDA Art. 101:** autoría declarada en `LICENSE.md`.
